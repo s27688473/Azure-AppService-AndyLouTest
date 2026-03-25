@@ -49,7 +49,7 @@ def get_sql_conn():
         f"DRIVER={os.getenv('AZURE_SQL_DRIVER', '{ODBC Driver 18 for SQL Server}')};"
         f"SERVER={os.getenv('AZURE_SQL_SERVER')};"
         f"DATABASE={os.getenv('AZURE_SQL_DATABASE')};"
-        f"UID={os.getenv('AZURE_SQL_USERNAME')};"
+        f"UID={os.getenv('AZURE_SQL_USER')};"
         f"PWD={os.getenv('AZURE_SQL_PASSWORD')};"
         "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
     )
@@ -58,21 +58,12 @@ def get_sql_conn():
 
 def get_pg_conn():
     """回傳 Azure PostgreSQL 連線"""
-    return psycopg2.connect(
-        host=os.getenv("AZURE_PG_HOST"),
-        port=int(os.getenv("AZURE_PG_PORT", 5432)),
-        database=os.getenv("AZURE_PG_DATABASE"),
-        user=os.getenv("AZURE_PG_USER"),
-        password=os.getenv("AZURE_PG_PASSWORD"),
-        sslmode=os.getenv("AZURE_PG_SSLMODE", "require"),
-    )
-
+    return psycopg2.connect(os.getenv("AZURE_POSTGRESQL_CONNECTIONSTRING"))
 
 def get_mongo_col():
     """回傳 Cosmos DB (MongoDB API) Collection"""
-    client = MongoClient(os.getenv("COSMOS_MONGO_URI"))
-    db = client[os.getenv("COSMOS_MONGO_DATABASE", "mydb")]
-    return db[os.getenv("COSMOS_MONGO_COLLECTION", "users")]
+    client = MongoClient(os.getenv("AZURE_COSMOS_CONNECTIONSTRING"))
+    return client.get_default_database()["users"]
 
 
 # ════════════════════════════════════════════════════════════════════════
