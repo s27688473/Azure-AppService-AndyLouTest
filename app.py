@@ -60,6 +60,23 @@ def get_pg_conn():
     """回傳 Azure PostgreSQL 連線"""
     return psycopg2.connect(os.getenv("AZURE_POSTGRESQL_CONNECTIONSTRING"))
 
+
+def init_pg():
+    conn = get_pg_conn()
+    cur  = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id       SERIAL PRIMARY KEY,
+            name     VARCHAR(100) NOT NULL UNIQUE,
+            nickname VARCHAR(100) NOT NULL
+        );
+    """)
+    conn.commit()
+    conn.close()
+
+init_pg()
+
+
 def get_mongo_col():
     """回傳 Cosmos DB (MongoDB API) Collection"""
     client = MongoClient(os.getenv("AZURE_COSMOS_CONNECTIONSTRING"))
