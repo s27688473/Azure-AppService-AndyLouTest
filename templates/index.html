@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}首頁 — Azure DB Portal{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Hero ─────────────────────────────────────────── */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6rem 2rem 4rem;
+    gap: 1.6rem;
+  }
+
+  .hero-tag {
+    font-size: .72rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid rgba(0,180,216,.3);
+    padding: .3rem .9rem;
+    border-radius: 999px;
+  }
+
+  .hero h1 {
+    font-family: var(--font-head);
+    font-size: clamp(2.6rem, 7vw, 5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -.03em;
+    max-width: 720px;
+  }
+
+  .hero h1 .hl { color: var(--accent1); }
+
+  .hero p {
+    font-size: .95rem;
+    color: var(--muted);
+    max-width: 480px;
+    line-height: 1.75;
+  }
+
+  /* ── Cards ────────────────────────────────────────── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem 3rem 5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 1.8rem;
+    text-decoration: none;
+    overflow: hidden;
+    transition: border-color .25s, transform .25s;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .card:hover { transform: translateY(-4px); }
+  .card.sql:hover     { border-color: var(--accent1); }
+  .card.pg:hover      { border-color: #336791; }
+  .card.cosmos:hover  { border-color: var(--accent3); }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .card.sql::before    { background: linear-gradient(90deg, var(--accent1), var(--accent2)); }
+  .card.pg::before     { background: linear-gradient(90deg, #336791, #6eb3e6); }
+  .card.cosmos::before { background: linear-gradient(90deg, var(--accent3), var(--accent2)); }
+
+  .card-icon {
+    font-size: 2rem;
+    width: 52px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+  }
+
+  .card h3 {
+    font-family: var(--font-head);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .card p {
+    font-size: .78rem;
+    color: var(--muted);
+    line-height: 1.65;
+    flex: 1;
+  }
+
+  .card-arrow {
+    font-size: .78rem;
+    color: var(--accent2);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-top: .5rem;
+  }
+
+  /* ── Glow blobs ───────────────────────────────────── */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: .12;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob1 { width: 500px; height: 500px; background: var(--accent1); top: -100px; left: -100px; }
+  .blob2 { width: 400px; height: 400px; background: var(--accent3); bottom: 0;   right: -80px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+
+<section class="hero">
+  <span class="hero-tag">Multi-Database Demo</span>
+  <h1>連接三種 <span class="hl">Azure</span> 資料庫</h1>
+  <p>選擇下方資料庫類型，使用各自的帳號密碼進行登入驗證。</p>
+</section>
+
+<div class="cards">
+
+  <a class="card sql" href="{{ url_for('login_azure_sql') }}">
+    <div class="card-icon">🗄️</div>
+    <h3>Azure SQL Database</h3>
+    <p>Microsoft 全受管關聯式資料庫，使用 T-SQL 語法，透過 pyodbc 驅動程式連線。</p>
+    <div class="card-arrow">前往登入 →</div>
+  </a>
+
+  <a class="card pg" href="{{ url_for('login_postgres') }}">
+    <div class="card-icon">🐘</div>
+    <h3>Azure PostgreSQL</h3>
+    <p>Azure 全受管 PostgreSQL 彈性伺服器，使用 psycopg2 進行 SSL 安全連線。</p>
+    <div class="card-arrow">前往登入 →</div>
+  </a>
+
+  <a class="card cosmos" href="{{ url_for('login_cosmos_mongo') }}">
+    <div class="card-icon">🌌</div>
+    <h3>Cosmos DB · MongoDB</h3>
+    <p>Azure Cosmos DB for MongoDB API，NoSQL 文件型資料庫，透過 pymongo 連線。</p>
+    <div class="card-arrow">前往登入 →</div>
+  </a>
+
+</div>
+{% endblock %}
