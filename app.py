@@ -61,22 +61,6 @@ def get_pg_conn():
     return psycopg2.connect(os.getenv("AZURE_POSTGRESQL_CONNECTIONSTRING"))
 
 
-def init_pg():
-    conn = get_pg_conn()
-    cur  = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id       SERIAL PRIMARY KEY,
-            name     VARCHAR(100) NOT NULL UNIQUE,
-            nickname VARCHAR(100) NOT NULL
-        );
-    """)
-    conn.commit()
-    conn.close()
-
-init_pg()
-
-
 def get_mongo_col():
     """回傳 Cosmos DB (MongoDB API) Collection"""
     client = MongoClient(os.getenv("AZURE_COSMOS_CONNECTIONSTRING"))
@@ -178,6 +162,15 @@ def pg_register():
     try:
         conn = get_pg_conn()
         cur  = conn.cursor()
+        # 自動建立資料表（若不存在）
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id       SERIAL PRIMARY KEY,
+                name     VARCHAR(100) NOT NULL UNIQUE,
+                nickname VARCHAR(100) NOT NULL
+            );
+        """)
+        conn.commit()
         cur.execute("SELECT 1 FROM users WHERE name = %s", (name,))
         if cur.fetchone():
             cur.execute("UPDATE users SET nickname = %s WHERE name = %s", (nickname, name))
