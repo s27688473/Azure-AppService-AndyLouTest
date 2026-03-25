@@ -108,6 +108,16 @@ def sql_register():
     try:
         conn   = get_sql_conn()
         cursor = conn.cursor()
+        # 自動建立資料表（若不存在）
+        cursor.execute("""
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='users' AND xtype='U')
+            CREATE TABLE users (
+                id       INT IDENTITY(1,1) PRIMARY KEY,
+                name     NVARCHAR(100) NOT NULL UNIQUE,
+                nickname NVARCHAR(100) NOT NULL
+            );
+        """)
+        conn.commit()
         # 若姓名已存在則更新暱稱，否則新增
         cursor.execute("SELECT 1 FROM users WHERE name = ?", (name,))
         if cursor.fetchone():
@@ -122,7 +132,6 @@ def sql_register():
     except Exception as e:
         app.logger.error(f"[Azure SQL] register error: {e}")
         return jsonify({"message": f"資料庫錯誤：{str(e)}"}), 500
-
 
 @app.route("/api/azure-sql/search", methods=["GET"])
 def sql_search():
