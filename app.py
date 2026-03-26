@@ -69,7 +69,7 @@ def get_pg_conn():
     )
     token = credential.get_token("https://ossrdbms-aad.database.windows.net/.default")
     conn_str = os.getenv("AZURE_POSTGRESQL_CONNECTIONSTRING")
-    return psycopg2.connect(conn_str, password=token.token)
+    return psycopg2.connect(conn_str, password=f"Bearer {token.token}")
 
 
 def get_mongo_col():
