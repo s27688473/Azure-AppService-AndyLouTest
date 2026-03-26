@@ -3,3 +3,4 @@ pyodbc==5.1.0
 psycopg2-binary==2.9.9
 pymongo==4.7.3
 azure-identity
+azure-cosmos

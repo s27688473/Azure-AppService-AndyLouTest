@@ -156,7 +156,8 @@
     .card:hover { transform: translateY(-4px); }
     .card.sql:hover    { border-color: var(--accent1); }
     .card.pg:hover     { border-color: #336791; }
-    .card.cosmos:hover { border-color: var(--accent3); }
+    .card.cosmos:hover   { border-color: var(--accent3); }
+    .card.nosql:hover    { border-color: #00c896; }
 
     .card::before {
       content: '';
@@ -168,6 +169,7 @@
     .card.sql::before    { background: linear-gradient(90deg, var(--accent1), var(--accent2)); }
     .card.pg::before     { background: linear-gradient(90deg, #336791, #6eb3e6); }
     .card.cosmos::before { background: linear-gradient(90deg, var(--accent3), var(--accent2)); }
+    .card.nosql::before  { background: linear-gradient(90deg, #00c896, #00e5b0); }
 
     .card-icon {
       font-size: 2rem;
@@ -218,13 +220,14 @@
   <div class="nav-links">
     <a href="/azure-sql">SQL</a>
     <a href="/postgres">PostgreSQL</a>
-    <a href="/cosmos-mongo">Cosmos</a>
+    <a href="/cosmos-mongo">Cosmos MongoDB</a>
+    <a href="/cosmos-nosql">Cosmos NoSQL</a>
   </div>
 </nav>
 
 <section class="hero">
   <span class="hero-tag">Multi-Database Demo</span>
-  <h1>連接三種 <span class="hl">Azure</span> 資料庫</h1>
+  <h1>連接四種 <span class="hl">Azure</span> 資料庫</h1>
   <p>選擇下方資料庫類型，進行使用者註冊與暱稱查詢。</p>
 </section>
 
@@ -251,9 +254,16 @@
     <div class="card-arrow">前往使用 →</div>
   </a>
 
+  <a class="card nosql" href="/cosmos-nosql">
+    <div class="card-icon">⚡</div>
+    <h3>Cosmos DB · NoSQL</h3>
+    <p>Azure Cosmos DB for NoSQL API，支援受控識別驗證，透過 azure-cosmos SDK 連線。</p>
+    <div class="card-arrow">前往使用 →</div>
+  </a>
+
 </div>
 
-<footer>AZURE MULTI-DB PORTAL &nbsp;·&nbsp; Flask + Azure SQL / PostgreSQL / Cosmos DB</footer>
+<footer>AZURE MULTI-DB PORTAL &nbsp;·&nbsp; Flask + Azure SQL / PostgreSQL / Cosmos DB MongoDB / Cosmos DB NoSQL</footer>
 
 </body>
 </html>

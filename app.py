@@ -34,8 +34,10 @@ from flask import Flask, render_template, request, jsonify
 import pyodbc                       # Azure SQL
 import psycopg2                     # Azure PostgreSQL
 from pymongo import MongoClient     # Cosmos DB (MongoDB API)
-from azure.identity import ManagedIdentityCredential
+from azure.identity import ManagedIdentityCredential       #Identity
+from azure.cosmos import CosmosClient                      #Cosmos DB (NoSQL API)
 import struct
+
 
 app = Flask(__name__)
 
@@ -43,8 +45,6 @@ app = Flask(__name__)
 # ════════════════════════════════════════════════════════════════════════
 #  DB 連線函式
 # ════════════════════════════════════════════════════════════════════════
-
-
 
 def get_sql_conn():
     """回傳 Azure SQL Database 連線（使用者指派受控識別）"""
@@ -62,6 +62,7 @@ def get_sql_conn():
     )
     return pyodbc.connect(conn_str, attrs_before={1256: token_struct})
 
+
 def get_pg_conn():
     """回傳 Azure PostgreSQL 連線（使用者指派受控識別）"""
     credential = ManagedIdentityCredential(
@@ -76,6 +77,21 @@ def get_mongo_col():
     """回傳 Cosmos DB (MongoDB API) Collection"""
     client = MongoClient(os.getenv("AZURE_COSMOS_CONNECTIONSTRING"))
     return client[os.getenv("COSMOS_MONGO_DATABASE")]["users"]
+
+
+def get_nosql_container():
+    """回傳 Cosmos DB (NoSQL API) Container（受控識別）"""
+    credential = ManagedIdentityCredential(
+        client_id=os.getenv("AZURE_CLIENT_ID")
+    )
+    client = CosmosClient(
+        url=os.getenv("AZURE_COSMOS_NOSQL_ENDPOINT"),
+        credential=credential
+    )
+    database  = client.get_database_client(os.getenv("AZURE_COSMOS_NOSQL_DATABASE"))
+    container = database.get_container_client("users")
+    return container
+
 
 # ════════════════════════════════════════════════════════════════════════
 #  頁面路由（render html）
@@ -99,6 +115,11 @@ def page_postgres():
 @app.route("/cosmos-mongo")
 def page_cosmos_mongo():
     return render_template("cosmos_mongo.html")
+
+
+@app.route("/cosmos-nosql")
+def page_cosmos_nosql():
+    return render_template("cosmos_nosql.html")
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -273,6 +294,57 @@ def mongo_search():
         return jsonify({"message": f"資料庫錯誤：{str(e)}"}), 500
 
 
+# ════════════════════════════════════════════════════════════════════════
+#  API：Cosmos DB (NoSQL API)
+# ════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/cosmos-nosql/register", methods=["POST"])
+def nosql_register():
+    """新增 name + nickname 到 Cosmos DB (NoSQL API)"""
+    data     = request.get_json(force=True)
+    name     = (data.get("name", "") or "").strip()
+    nickname = (data.get("nickname", "") or "").strip()
+
+    if not name or not nickname:
+        return jsonify({"message": "姓名與暱稱不能為空"}), 400
+
+    try:
+        container = get_nosql_container()
+        # NoSQL API 需要 id 欄位作為唯一識別
+        container.upsert_item({
+            "id":       name,
+            "name":     name,
+            "nickname": nickname
+        })
+        msg = f"成功註冊 {name}，暱稱：{nickname}。"
+        return jsonify({"message": msg}), 200
+    except Exception as e:
+        app.logger.error(f"[Cosmos NoSQL] register error: {e}")
+        return jsonify({"message": f"資料庫錯誤：{str(e)}"}), 500
+
+
+@app.route("/api/cosmos-nosql/search", methods=["GET"])
+def nosql_search():
+    """從 Cosmos DB (NoSQL API) 查詢 name 對應的 nickname"""
+    name = (request.args.get("name", "") or "").strip()
+    if not name:
+        return jsonify({"message": "請提供姓名參數"}), 400
+
+    try:
+        container = get_nosql_container()
+        items = list(container.query_items(
+            query="SELECT * FROM c WHERE c.name = @name",
+            parameters=[{"name": "@name", "value": name}],
+            enable_cross_partition_query=True
+        ))
+        if items:
+            return jsonify({"nickname": items[0]["nickname"]}), 200
+        return jsonify({"message": f"找不到名為「{name}」的使用者。"}), 404
+    except Exception as e:
+        app.logger.error(f"[Cosmos NoSQL] search error: {e}")
+        return jsonify({"message": f"資料庫錯誤：{str(e)}"}), 500
+    
+    
 # ════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
