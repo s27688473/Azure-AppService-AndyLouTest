@@ -63,8 +63,13 @@ def get_sql_conn():
     return pyodbc.connect(conn_str, attrs_before={1256: token_struct})
 
 def get_pg_conn():
-    """回傳 Azure PostgreSQL 連線"""
-    return psycopg2.connect(os.getenv("AZURE_POSTGRESQL_CONNECTIONSTRING"))
+    """回傳 Azure PostgreSQL 連線（使用者指派受控識別）"""
+    credential = ManagedIdentityCredential(
+        client_id=os.getenv("AZURE_CLIENT_ID")
+    )
+    token = credential.get_token("https://ossrdbms-aad.database.windows.net/.default")
+    conn_str = os.getenv("AZURE_POSTGRESQL_CONNECTIONSTRING")
+    return psycopg2.connect(conn_str, password=token.token)
 
 
 def get_mongo_col():
