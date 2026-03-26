@@ -34,7 +34,8 @@ from flask import Flask, render_template, request, jsonify
 import pyodbc                       # Azure SQL
 import psycopg2                     # Azure PostgreSQL
 from pymongo import MongoClient     # Cosmos DB (MongoDB API)
-
+from azure.identity import ManagedIdentityCredential
+import struct
 
 app = Flask(__name__)
 
@@ -43,18 +44,23 @@ app = Flask(__name__)
 #  DB 連線函式
 # ════════════════════════════════════════════════════════════════════════
 
+
+
 def get_sql_conn():
-    """回傳 Azure SQL Database 連線"""
+    """回傳 Azure SQL Database 連線（使用者指派受控識別）"""
+    credential = ManagedIdentityCredential(
+        client_id=os.getenv("AZURE_CLIENT_ID")  # 受控識別的用戶端ID
+    )
+    token = credential.get_token("https://database.windows.net/.default")
+    token_bytes = token.token.encode("utf-16-le")
+    token_struct = struct.pack(f"<I{len(token_bytes)}s", len(token_bytes), token_bytes)
     conn_str = (
         f"DRIVER={os.getenv('AZURE_SQL_DRIVER', '{ODBC Driver 18 for SQL Server}')};"
         f"SERVER={os.getenv('AZURE_SQL_SERVER')};"
         f"DATABASE={os.getenv('AZURE_SQL_DATABASE')};"
-        f"UID={os.getenv('AZURE_SQL_USER')};"
-        f"PWD={os.getenv('AZURE_SQL_PASSWORD')};"
         "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
     )
-    return pyodbc.connect(conn_str)
-
+    return pyodbc.connect(conn_str, attrs_before={1256: token_struct})
 
 def get_pg_conn():
     """回傳 Azure PostgreSQL 連線"""
