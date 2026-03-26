@@ -64,8 +64,7 @@ def get_pg_conn():
 def get_mongo_col():
     """回傳 Cosmos DB (MongoDB API) Collection"""
     client = MongoClient(os.getenv("AZURE_COSMOS_CONNECTIONSTRING"))
-    return client.get_default_database()["users"]
-
+    return client[os.getenv("COSMOS_MONGO_DATABASE")]["users"]
 
 # ════════════════════════════════════════════════════════════════════════
 #  頁面路由（render html）
